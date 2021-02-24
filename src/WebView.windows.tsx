@@ -188,13 +188,6 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
     }
   }
 
-  onFileDownload = (event: WebViewMessageEvent) => {
-    const { onFileDownload } = this.props;
-    if (onFileDownload) {
-      onFileDownload(event?.nativeEvent?.data);
-    }
-  };
-
   onHttpError = (event: WebViewHttpErrorEvent) => {
     const { onHttpError } = this.props;
     if (onHttpError) {
@@ -206,7 +199,6 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
     const {
       nativeConfig = {},
       onMessage,
-      onFileDownload,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
       originWhitelist,
       renderError,
@@ -264,7 +256,6 @@ export default class WebView extends React.Component<WebViewSharedProps, State> 
         onLoadingStart={this.onLoadingStart}
         onHttpError={this.onHttpError}
         onMessage={this.onMessage}
-        onFileDownload={this.onFileDownload}
         onScroll={this.props.onScroll}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         source={resolveAssetSource(this.props.source as ImageSourcePropType)}

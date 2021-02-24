@@ -225,13 +225,6 @@ class WebView extends React.Component<MacOSWebViewProps, State> {
     }
   };
 
-  onFileDownload = (event: WebViewMessageEvent) => {
-    const { onFileDownload } = this.props;
-    if (onFileDownload) {
-      onFileDownload(event?.nativeEvent?.data);
-    }
-  };
-
   onLoadingProgress = (event: WebViewProgressEvent) => {
     const { onLoadProgress } = this.props;
     if (onLoadProgress) {
@@ -279,7 +272,6 @@ class WebView extends React.Component<MacOSWebViewProps, State> {
     const {
       nativeConfig = {},
       onMessage,
-      onFileDownload,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
       originWhitelist,
       renderError,
@@ -332,7 +324,6 @@ class WebView extends React.Component<MacOSWebViewProps, State> {
         onLoadingStart={this.onLoadingStart}
         onHttpError={this.onHttpError}
         onMessage={this.onMessage}
-        onFileDownload={this.onFileDownload}
         onScroll={this.props.onScroll}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         onContentProcessDidTerminate={this.onContentProcessDidTerminate}

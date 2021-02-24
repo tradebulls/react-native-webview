@@ -782,6 +782,8 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
   onNavigationStateChange?: (event: WebViewNavigation) => void;
   onContentSizeChange?: (event: WebViewEvent) => void;
 
+  onFileDownload?: (event: String) => void;
+
   /**
    * Function that is invoked when the `WebView` process crashes or is killed by the OS.
    * Works only on Android (minimum API level 26).
@@ -1016,8 +1018,6 @@ export interface WebViewSharedProps extends ViewProps {
    * available on the event object, `event.nativeEvent.data`. `data` must be a string.
    */
   onMessage?: (event: WebViewMessageEvent) => void;
-
-  onFileDownload?: (event: String) => void;
 
   /**
    * Function that is invoked when the `WebView` is loading.
