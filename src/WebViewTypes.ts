@@ -299,7 +299,7 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   mixedContentMode?: 'never' | 'always' | 'compatibility';
   onContentSizeChange?: (event: WebViewEvent) => void;
   onRenderProcessGone?: (event: WebViewRenderProcessGoneEvent) => void;
-  onFileDownload: (event: String) => void;
+  onFileDownload: (event: WebViewMessageEvent) => void;
   overScrollMode?: OverScrollModeType;
   saveFormDataDisabled?: boolean;
   setSupportMultipleWindows?: boolean;
@@ -782,7 +782,7 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
   onNavigationStateChange?: (event: WebViewNavigation) => void;
   onContentSizeChange?: (event: WebViewEvent) => void;
 
-  onFileDownload?: (event: String) => void;
+  onFileDownload?: (event: WebViewMessageEvent) => void;
 
   /**
    * Function that is invoked when the `WebView` process crashes or is killed by the OS.
