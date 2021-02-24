@@ -272,7 +272,6 @@ export interface CommonNativeWebViewProps extends ViewProps {
   onLoadingStart: (event: WebViewNavigationEvent) => void;
   onHttpError: (event: WebViewHttpErrorEvent) => void;
   onMessage: (event: WebViewMessageEvent) => void;
-  onFileDownload: (event: WebViewMessageEvent) => void;
   onShouldStartLoadWithRequest: (event: ShouldStartLoadRequestEvent) => void;
   showsHorizontalScrollIndicator?: boolean;
   showsVerticalScrollIndicator?: boolean;
@@ -300,6 +299,7 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   mixedContentMode?: 'never' | 'always' | 'compatibility';
   onContentSizeChange?: (event: WebViewEvent) => void;
   onRenderProcessGone?: (event: WebViewRenderProcessGoneEvent) => void;
+  onFileDownload: (event: String) => void;
   overScrollMode?: OverScrollModeType;
   saveFormDataDisabled?: boolean;
   setSupportMultipleWindows?: boolean;
