@@ -70,6 +70,7 @@ import com.facebook.react.uimanager.events.ContentSizeChangeEvent;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.reactnativecommunity.webview.RNCWebViewModule.ShouldOverrideUrlLoadingLock.ShouldOverrideCallbackState;
+import com.reactnativecommunity.webview.events.OnFileDownloadEvent;
 import com.reactnativecommunity.webview.events.TopLoadingErrorEvent;
 import com.reactnativecommunity.webview.events.TopHttpErrorEvent;
 import com.reactnativecommunity.webview.events.TopLoadingFinishEvent;
@@ -209,40 +210,49 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
     webView.setDownloadListener(new DownloadListener() {
       public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-        webView.setIgnoreErrFailedForThisURL(url);
-
-        RNCWebViewModule module = getModule(reactContext);
-
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-
-        String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
-        String downloadMessage = "Downloading " + fileName;
-
-        //Attempt to add cookie, if it exists
-        URL urlObj = null;
         try {
-          urlObj = new URL(url);
-          String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
-          String cookie = CookieManager.getInstance().getCookie(baseUrl);
-          request.addRequestHeader("Cookie", cookie);
-        } catch (MalformedURLException e) {
-          System.out.println("Error getting cookie for DownloadManager: " + e.toString());
-          e.printStackTrace();
-        }
+          webView.setIgnoreErrFailedForThisURL(url);
 
-        //Finish setting up request
-        request.addRequestHeader("User-Agent", userAgent);
-        request.setTitle(fileName);
-        request.setDescription(downloadMessage);
-        request.allowScanningByMediaScanner();
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+          RNCWebViewModule module = getModule(reactContext);
 
-        module.setDownloadRequest(request);
+          if (url.contains("data:")) {
+            WritableMap eventData = Arguments.createMap();
+            eventData.putString("data", url);
+            dispatchEvent(webView, new OnFileDownloadEvent(webView.getId(), eventData));
+            return;
+          }
 
-        if (module.grantFileDownloaderPermissions()) {
-          module.downloadFile();
-        }
+          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+
+          String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
+          String downloadMessage = "Downloading " + fileName;
+
+          //Attempt to add cookie, if it exists
+          URL urlObj = null;
+          try {
+            urlObj = new URL(url);
+            String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
+            String cookie = CookieManager.getInstance().getCookie(baseUrl);
+            request.addRequestHeader("Cookie", cookie);
+          } catch (MalformedURLException e) {
+            System.out.println("Error getting cookie for DownloadManager: " + e.toString());
+            e.printStackTrace();
+          }
+
+          //Finish setting up request
+          request.addRequestHeader("User-Agent", userAgent);
+          request.setTitle(fileName);
+          request.setDescription(downloadMessage);
+          request.allowScanningByMediaScanner();
+          request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+          request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+          module.setDownloadRequest(request);
+
+          if (module.grantFileDownloaderPermissions()) {
+            module.downloadFile();
+          }
+        } catch(Exception e) {}
       }
     });
 
@@ -612,6 +622,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     export.put(ScrollEventType.getJSEventName(ScrollEventType.SCROLL), MapBuilder.of("registrationName", "onScroll"));
     export.put(TopHttpErrorEvent.EVENT_NAME, MapBuilder.of("registrationName", "onHttpError"));
     export.put(TopRenderProcessGoneEvent.EVENT_NAME, MapBuilder.of("registrationName", "onRenderProcessGone"));
+    export.put(OnFileDownloadEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFileDownload"));
     return export;
   }
 
@@ -734,25 +745,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           }
 
           mVideoView.setBackgroundColor(Color.BLACK);
-
-          // since RN's Modals interfere with the View hierarchy
-          // we will decide which View to Hide if the hierarchy
-          // does not match (i.e., the webview is within a Modal)
-          // NOTE: We could use mWebView.getRootView() instead of getRootView()
-          // but that breaks the Modal's styles and layout, so we need this to render
-          // in the main View hierarchy regardless.
-          ViewGroup rootView = getRootView();
-          rootView.addView(mVideoView, FULLSCREEN_LAYOUT_PARAMS);
-
-          // Different root views, we are in a Modal
-          if(rootView.getRootView() != mWebView.getRootView()){
-            mWebView.getRootView().setVisibility(View.GONE);
-          }
-
-          // Same view hierarchy (no Modal), just hide the webview then
-          else{
-            mWebView.setVisibility(View.GONE);
-          }
+          getRootView().addView(mVideoView, FULLSCREEN_LAYOUT_PARAMS);
+          mWebView.setVisibility(View.GONE);
 
           mReactContext.addLifecycleEventListener(this);
         }
@@ -763,28 +757,18 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
             return;
           }
 
-          // same logic as above
-          ViewGroup rootView = getRootView();
-
-          if(rootView.getRootView() !=  mWebView.getRootView()){
-            mWebView.getRootView().setVisibility(View.VISIBLE);
-          }
-
-          // Same view hierarchy (no Modal)
-          else{
-            mWebView.setVisibility(View.VISIBLE);
-          }
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            mReactContext.getCurrentActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-          }
-
-          rootView.removeView(mVideoView);
+          mVideoView.setVisibility(View.GONE);
+          getRootView().removeView(mVideoView);
           mCustomViewCallback.onCustomViewHidden();
 
           mVideoView = null;
           mCustomViewCallback = null;
 
+          mWebView.setVisibility(View.VISIBLE);
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            mReactContext.getCurrentActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+          }
           mReactContext.getCurrentActivity().setRequestedOrientation(initialRequestedOrientation);
 
           mReactContext.removeLifecycleEventListener(this);
@@ -845,61 +829,61 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           createWebViewEvent(webView, url)));
     }
 
-    @Override
-    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-      final RNCWebView rncWebView = (RNCWebView) view;
-      final boolean isJsDebugging = ((ReactContext) view.getContext()).getJavaScriptContextHolder().get() == 0;
+    // @Override
+    // public boolean shouldOverrideUrlLoading(WebView view, String url) {
+    //   final RNCWebView rncWebView = (RNCWebView) view;
+    //   final boolean isJsDebugging = ((ReactContext) view.getContext()).getJavaScriptContextHolder().get() == 0;
 
-      if (!isJsDebugging && rncWebView.mCatalystInstance != null) {
-        final Pair<Integer, AtomicReference<ShouldOverrideCallbackState>> lock = RNCWebViewModule.shouldOverrideUrlLoadingLock.getNewLock();
-        final int lockIdentifier = lock.first;
-        final AtomicReference<ShouldOverrideCallbackState> lockObject = lock.second;
+    //   if (!isJsDebugging && rncWebView.mCatalystInstance != null) {
+    //     final Pair<Integer, AtomicReference<ShouldOverrideCallbackState>> lock = RNCWebViewModule.shouldOverrideUrlLoadingLock.getNewLock();
+    //     final int lockIdentifier = lock.first;
+    //     final AtomicReference<ShouldOverrideCallbackState> lockObject = lock.second;
 
-        final WritableMap event = createWebViewEvent(view, url);
-        event.putInt("lockIdentifier", lockIdentifier);
-        rncWebView.sendDirectMessage("onShouldStartLoadWithRequest", event);
+    //     final WritableMap event = createWebViewEvent(view, url);
+    //     event.putInt("lockIdentifier", lockIdentifier);
+    //     rncWebView.sendDirectMessage("onShouldStartLoadWithRequest", event);
 
-        try {
-          assert lockObject != null;
-          synchronized (lockObject) {
-            final long startTime = SystemClock.elapsedRealtime();
-            while (lockObject.get() == ShouldOverrideCallbackState.UNDECIDED) {
-              if (SystemClock.elapsedRealtime() - startTime > SHOULD_OVERRIDE_URL_LOADING_TIMEOUT) {
-                FLog.w(TAG, "Did not receive response to shouldOverrideUrlLoading in time, defaulting to allow loading.");
-                RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
-                return false;
-              }
-              lockObject.wait(SHOULD_OVERRIDE_URL_LOADING_TIMEOUT);
-            }
-          }
-        } catch (InterruptedException e) {
-          FLog.e(TAG, "shouldOverrideUrlLoading was interrupted while waiting for result.", e);
-          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
-          return false;
-        }
+    //     try {
+    //       assert lockObject != null;
+    //       synchronized (lockObject) {
+    //         final long startTime = SystemClock.elapsedRealtime();
+    //         while (lockObject.get() == ShouldOverrideCallbackState.UNDECIDED) {
+    //           if (SystemClock.elapsedRealtime() - startTime > SHOULD_OVERRIDE_URL_LOADING_TIMEOUT) {
+    //             FLog.w(TAG, "Did not receive response to shouldOverrideUrlLoading in time, defaulting to allow loading.");
+    //             RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
+    //             return false;
+    //           }
+    //           lockObject.wait(SHOULD_OVERRIDE_URL_LOADING_TIMEOUT);
+    //         }
+    //       }
+    //     } catch (InterruptedException e) {
+    //       FLog.e(TAG, "shouldOverrideUrlLoading was interrupted while waiting for result.", e);
+    //       RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
+    //       return false;
+    //     }
 
-        final boolean shouldOverride = lockObject.get() == ShouldOverrideCallbackState.SHOULD_OVERRIDE;
-        RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
+    //     final boolean shouldOverride = lockObject.get() == ShouldOverrideCallbackState.SHOULD_OVERRIDE;
+    //     RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
 
-        return shouldOverride;
-      } else {
-        FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
-        progressChangedFilter.setWaitingForCommandLoadUrl(true);
-        dispatchEvent(
-          view,
-          new TopShouldStartLoadWithRequestEvent(
-            view.getId(),
-            createWebViewEvent(view, url)));
-        return true;
-      }
-    }
+    //     return shouldOverride;
+    //   } else {
+    //     FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
+    //     progressChangedFilter.setWaitingForCommandLoadUrl(true);
+    //     dispatchEvent(
+    //       view,
+    //       new TopShouldStartLoadWithRequestEvent(
+    //         view.getId(),
+    //         createWebViewEvent(view, url)));
+    //     return true;
+    //   }
+    // }
 
-    @TargetApi(Build.VERSION_CODES.N)
-    @Override
-    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-      final String url = request.getUrl().toString();
-      return this.shouldOverrideUrlLoading(view, url);
-    }
+    // @TargetApi(Build.VERSION_CODES.N)
+    // @Override
+    // public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+    //   final String url = request.getUrl().toString();
+    //   return this.shouldOverrideUrlLoading(view, url);
+    // }
 
     @Override
     public void onReceivedSslError(final WebView webView, final SslErrorHandler handler, final SslError error) {

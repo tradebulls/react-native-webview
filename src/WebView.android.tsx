@@ -262,6 +262,12 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       onMessage(event);
     }
   };
+  onFileDownload = (event: WebViewMessageEvent) => {
+    const { onFileDownload } = this.props;
+    if (onFileDownload) {
+      onFileDownload(event?.nativeEvent?.data);
+    }
+  };
 
   onLoadingProgress = (event: WebViewProgressEvent) => {
     const { onLoadProgress } = this.props;
@@ -298,6 +304,7 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
   render() {
     const {
       onMessage,
+      onFileDownload,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
       originWhitelist,
       renderError,
@@ -363,6 +370,7 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
         onHttpError={this.onHttpError}
         onRenderProcessGone={this.onRenderProcessGone}
         onMessage={this.onMessage}
+        onFileDownload={this.onFileDownload}
         onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
         ref={this.webViewRef}
         // TODO: find a better way to type this.
