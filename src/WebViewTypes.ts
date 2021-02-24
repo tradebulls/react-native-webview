@@ -1017,7 +1017,7 @@ export interface WebViewSharedProps extends ViewProps {
    */
   onMessage?: (event: WebViewMessageEvent) => void;
 
-  onFileDownload?: (event: WebViewMessageEvent) => void;
+  onFileDownload?: (event: String) => void;
 
   /**
    * Function that is invoked when the `WebView` is loading.
