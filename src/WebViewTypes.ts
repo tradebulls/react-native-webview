@@ -12,25 +12,32 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 
-type WebViewCommands = 'goForward' | 'goBack' | 'reload' | 'stopLoading' | 'postMessage' | 'injectJavaScript' | 'loadUrl' | 'requestFocus';
+type WebViewCommands =
+  | 'goForward'
+  | 'goBack'
+  | 'reload'
+  | 'stopLoading'
+  | 'postMessage'
+  | 'injectJavaScript'
+  | 'loadUrl'
+  | 'requestFocus';
 
 type AndroidWebViewCommands = 'clearHistory' | 'clearCache' | 'clearFormData';
-
-
 
 interface RNCWebViewUIManager<Commands extends string> extends UIManagerStatic {
   getViewManagerConfig: (
     name: string,
   ) => {
-    Commands: {[key in Commands]: number};
+    Commands: { [key in Commands]: number };
   };
 }
 
-export type RNCWebViewUIManagerAndroid = RNCWebViewUIManager<WebViewCommands | AndroidWebViewCommands>
-export type RNCWebViewUIManagerIOS = RNCWebViewUIManager<WebViewCommands>
-export type RNCWebViewUIManagerMacOS = RNCWebViewUIManager<WebViewCommands>
-export type RNCWebViewUIManagerWindows = RNCWebViewUIManager<WebViewCommands>
-
+export type RNCWebViewUIManagerAndroid = RNCWebViewUIManager<
+  WebViewCommands | AndroidWebViewCommands
+>;
+export type RNCWebViewUIManagerIOS = RNCWebViewUIManager<WebViewCommands>;
+export type RNCWebViewUIManagerMacOS = RNCWebViewUIManager<WebViewCommands>;
+export type RNCWebViewUIManagerWindows = RNCWebViewUIManager<WebViewCommands>;
 
 type WebViewState = 'IDLE' | 'LOADING' | 'ERROR';
 
@@ -51,33 +58,25 @@ interface ErrorState extends BaseState {
 export type State = NormalState | ErrorState;
 
 // eslint-disable-next-line react/prefer-stateless-function
-declare class NativeWebViewIOSComponent extends Component<
-  IOSNativeWebViewProps
-> {}
+declare class NativeWebViewIOSComponent extends Component<IOSNativeWebViewProps> {}
 declare const NativeWebViewIOSBase: Constructor<NativeMethodsMixin> &
   typeof NativeWebViewIOSComponent;
 export class NativeWebViewIOS extends NativeWebViewIOSBase {}
 
 // eslint-disable-next-line react/prefer-stateless-function
-declare class NativeWebViewMacOSComponent extends Component<
-  MacOSNativeWebViewProps
-> {}
+declare class NativeWebViewMacOSComponent extends Component<MacOSNativeWebViewProps> {}
 declare const NativeWebViewMacOSBase: Constructor<NativeMethodsMixin> &
   typeof NativeWebViewMacOSComponent;
 export class NativeWebViewMacOS extends NativeWebViewMacOSBase {}
 
 // eslint-disable-next-line react/prefer-stateless-function
-declare class NativeWebViewAndroidComponent extends Component<
-  AndroidNativeWebViewProps
-> {}
+declare class NativeWebViewAndroidComponent extends Component<AndroidNativeWebViewProps> {}
 declare const NativeWebViewAndroidBase: Constructor<NativeMethodsMixin> &
   typeof NativeWebViewAndroidComponent;
 export class NativeWebViewAndroid extends NativeWebViewAndroidBase {}
 
 // eslint-disable-next-line react/prefer-stateless-function
-declare class NativeWebViewWindowsComponent extends Component<
-  WindowsNativeWebViewProps
-> {}
+declare class NativeWebViewWindowsComponent extends Component<WindowsNativeWebViewProps> {}
 declare const NativeWebViewWindowsBase: Constructor<NativeMethodsMixin> &
   typeof NativeWebViewWindowsComponent;
 export class NativeWebViewWindows extends NativeWebViewWindowsBase {}
@@ -147,9 +146,7 @@ export interface WebViewRenderProcessGoneDetail {
 
 export type WebViewEvent = NativeSyntheticEvent<WebViewNativeEvent>;
 
-export type WebViewProgressEvent = NativeSyntheticEvent<
-  WebViewNativeProgressEvent
->;
+export type WebViewProgressEvent = NativeSyntheticEvent<WebViewNativeProgressEvent>;
 
 export type WebViewNavigationEvent = NativeSyntheticEvent<WebViewNavigation>;
 
@@ -182,7 +179,11 @@ export type DataDetectorTypes =
 
 export type OverScrollModeType = 'always' | 'content' | 'never';
 
-export type CacheMode = 'LOAD_DEFAULT' | 'LOAD_CACHE_ONLY' | 'LOAD_CACHE_ELSE_NETWORK' | 'LOAD_NO_CACHE';
+export type CacheMode =
+  | 'LOAD_DEFAULT'
+  | 'LOAD_CACHE_ONLY'
+  | 'LOAD_CACHE_ELSE_NETWORK'
+  | 'LOAD_NO_CACHE';
 
 export type AndroidLayerType = 'none' | 'software' | 'hardware';
 
@@ -234,7 +235,10 @@ export interface WebViewNativeConfig {
   /**
    * The native component used to render the WebView.
    */
-  component?: typeof NativeWebViewIOS | typeof NativeWebViewMacOS | typeof NativeWebViewAndroid;
+  component?:
+    | typeof NativeWebViewIOS
+    | typeof NativeWebViewMacOS
+    | typeof NativeWebViewAndroid;
   /**
    * Set props directly on the native component WebView. Enables custom props which the
    * original WebView doesn't pass through.
@@ -268,6 +272,7 @@ export interface CommonNativeWebViewProps extends ViewProps {
   onLoadingStart: (event: WebViewNavigationEvent) => void;
   onHttpError: (event: WebViewHttpErrorEvent) => void;
   onMessage: (event: WebViewMessageEvent) => void;
+  onFileDownload: (event: WebViewMessageEvent) => void;
   onShouldStartLoadWithRequest: (event: ShouldStartLoadRequestEvent) => void;
   showsHorizontalScrollIndicator?: boolean;
   showsVerticalScrollIndicator?: boolean;
@@ -304,7 +309,11 @@ export interface AndroidNativeWebViewProps extends CommonNativeWebViewProps {
   readonly urlPrefixesForDefaultIntent?: string[];
 }
 
-export declare type ContentInsetAdjustmentBehavior = 'automatic' | 'scrollableAxes' | 'never' | 'always';
+export declare type ContentInsetAdjustmentBehavior =
+  | 'automatic'
+  | 'scrollableAxes'
+  | 'never'
+  | 'always';
 
 export declare type ContentMode = 'recommended' | 'mobile' | 'desktop';
 
@@ -354,7 +363,7 @@ export interface MacOSNativeWebViewProps extends CommonNativeWebViewProps {
 }
 
 export interface WindowsNativeWebViewProps extends CommonNativeWebViewProps {
-  testID?: string
+  testID?: string;
 }
 
 export interface IOSWebViewProps extends WebViewSharedProps {
@@ -578,14 +587,14 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * If `true` (default), loads the `injectedJavaScript` only into the main frame.
    * If `false`, loads it into all frames (e.g. iframes).
    * @platform ios
-  */
+   */
   injectedJavaScriptForMainFrameOnly?: boolean;
 
   /**
    * If `true` (default), loads the `injectedJavaScriptBeforeContentLoaded` only into the main frame.
    * If `false`, loads it into all frames (e.g. iframes).
    * @platform ios
-  */
+   */
   injectedJavaScriptBeforeContentLoadedForMainFrameOnly?: boolean;
 
   /**
@@ -594,7 +603,7 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * If `true`, sets `bounces` automatically to `true`
    * @platform ios
    *
-  */
+   */
   pullToRefreshEnabled?: boolean;
 
   /**
@@ -817,7 +826,6 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    */
   geolocationEnabled?: boolean;
 
-
   /**
    * Boolean that sets whether JavaScript running in the context of a file
    * scheme URL should be allowed to access content from other file scheme URLs.
@@ -869,7 +877,7 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    */
   androidHardwareAccelerationDisabled?: boolean;
 
-    /**
+  /**
    * https://developer.android.com/reference/android/webkit/WebView#setLayerType(int,%20android.graphics.Paint)
    * Sets the layerType. Possible values are:
    *
@@ -1008,6 +1016,8 @@ export interface WebViewSharedProps extends ViewProps {
    * available on the event object, `event.nativeEvent.data`. `data` must be a string.
    */
   onMessage?: (event: WebViewMessageEvent) => void;
+
+  onFileDownload?: (event: WebViewMessageEvent) => void;
 
   /**
    * Function that is invoked when the `WebView` is loading.
