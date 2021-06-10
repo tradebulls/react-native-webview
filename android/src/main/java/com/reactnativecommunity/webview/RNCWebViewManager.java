@@ -216,7 +216,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
           if (url.contains("data:")) {
             WritableMap eventData = Arguments.createMap();
             eventData.putString("data", url);
-            dispatchEvent(webView, new OnFileDownloadEvent(webView.getId(), eventData));
+            ((RNCWebView) webView).dispatchEvent(webView, new OnFileDownloadEvent(webView.getId(), eventData));
             return;
           }
 
